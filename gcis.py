@@ -59,7 +59,7 @@ def generate_tree(search_keywords):
                         else:
                             pass
                 GCIS['children'].append(GCIS_level2)
-        return GCIS
+        return json.dumps(GCIS)
 
 
 
@@ -140,9 +140,8 @@ def get_Company(Person_name):
 # TODO API 
 
 
-company = generate_tree("台灣積體電路製造股份有限公司")
+company = generate_tree("瑞昱工程有限公司")
 
 
 
-
-
+print(company)
