@@ -47,9 +47,10 @@ def generate_tree(search_keywords):
                                         for l in level5:
                                             if(l!=search_keywords):
                                                 if(l != None):
-                                                    child = {}
-                                                    child['name'] = l
-                                                    GCIS_level4['children'].append(child)
+                                                    GCIS_level5 = {}
+                                                    GCIS_level5['name'] = l
+                                                    GCIS_level5['children'] = []
+                                                    GCIS_level4['children'].append(GCIS_level5)
                                                 else:
                                                     pass
                                         GCIS_level3['children'].append(GCIS_level4)
@@ -59,7 +60,7 @@ def generate_tree(search_keywords):
                         else:
                             pass
                 GCIS['children'].append(GCIS_level2)
-        return json.dumps(GCIS)
+        return (GCIS)
 
 
 
@@ -140,7 +141,7 @@ def get_Company(Person_name):
 # TODO API 
 
 
-company = generate_tree("瑞昱工程有限公司")
+company = generate_tree("台灣積體電路製造股份有限公司")
 
 
 
