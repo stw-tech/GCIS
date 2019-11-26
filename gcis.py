@@ -60,7 +60,7 @@ def generate_tree(search_keywords):
                         else:
                             pass
                 GCIS['children'].append(GCIS_level2)
-        return (GCIS)
+        return json.dumps(GCIS)
 
 
 
