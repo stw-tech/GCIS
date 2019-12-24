@@ -2,10 +2,14 @@ import boto3
 import json
 import re
 import time
+import django
+import os
 client = boto3.client('cloudsearchdomain', 
   endpoint_url='https://search-gcis-muopck6cghhsxghgxg24adfhrm.ap-northeast-1.cloudsearch.amazonaws.com')
 
 def generate_tree(search_keywords):
+    # TODO try multi-thread to deal with time complexity problem
+    # TODO use postgres db to fulfill this problem
     GCIS = {}
     if(is_company(search_keywords)[0]=='false'):
         return "Please Key in a company name"
@@ -14,16 +18,17 @@ def generate_tree(search_keywords):
     else:
         GCIS['name'] = search_keywords
         GCIS['parent'] = "root"
-        GCIS['children'] = [] 
+        GCIS['children'] = []
         if(get_Person(search_keywords) != None):
             for i in get_Person(search_keywords):
                 GCIS_level2 = {}
-                GCIS_level2['name'] = i
+                GCIS_level2['name'] = i[0]
+                GCIS_level2['attribute'] = i[1]
                 GCIS_level2['children'] = []
-                if(is_company(i)[0]=='false'):
-                    level3 = get_Company(i)
-                elif(is_company(i)[0]=='true'):
-                    level3 = get_Person(i)
+                if(is_company(i[0])[0]=='false'):
+                    level3 = get_Company(i[0])
+                elif(is_company(i[0])[0]=='true'):
+                    level3 = get_Person(i[0])
                 for j in level3:
                     if(j!=search_keywords):
                         if(j != None):
@@ -38,12 +43,13 @@ def generate_tree(search_keywords):
                                 if(k!=search_keywords):
                                     if(k != None):
                                         GCIS_level4 = {}
-                                        GCIS_level4['name'] = k
+                                        GCIS_level4['name'] = k[0]
+                                        GCIS_level4['attribute'] = k[1]
                                         GCIS_level4['children'] = []
-                                        if(is_company(k)[0]=='false'):
-                                            level5 = get_Company(k)
-                                        elif(is_company(k)[0]=='true'):
-                                            level5 = get_Person(k)
+                                        if(is_company(k[0])[0]=='false'):
+                                            level5 = get_Company(k[0])
+                                        elif(is_company(k[0])[0]=='true'):
+                                            level5 = get_Person(k[0])
                                         for l in level5:
                                             if(l!=search_keywords):
                                                 if(l != None):
@@ -60,7 +66,7 @@ def generate_tree(search_keywords):
                         else:
                             pass
                 GCIS['children'].append(GCIS_level2)
-        return json.dumps(GCIS)
+        return (GCIS)
 
 
 
@@ -95,7 +101,7 @@ def get_Person(Company_name):
     Company_name: str, Must
         A company name. (Must Check that the name is the only one)
     data: list
-        A list of person and juristic_person
+        A list of person and juristic_person && attribution
     '''
     data = []
     response = client.search(
@@ -108,9 +114,9 @@ def get_Person(Company_name):
     elif(response['hits']['found']==1):
         for i in eval(response['hits']['hit'][0]['fields']['directors'][0]):
             if(i!='None'):
-                data.append(i['Name'])
+                data.append((i['Name'],"person"))
                 if(i['Juristic_person'] != ''):
-                    data.append(i['Juristic_person'])
+                    data.append((i['Juristic_person'],"Juristic_person"))
             else:
                 return None
         return list(set(data))
@@ -138,11 +144,12 @@ def get_Company(Person_name):
     return list(set(data))
 
 # TODO deal with multiple company name
-# TODO API 
+# TODO API for dump data into tree structure
+# TODO API for check input character
 
 
-company = generate_tree("台灣積體電路製造股份有限公司")
-
-
-
-print(company)
+if(__name__ == "__main__"):
+    
+    data = generate_tree("台灣積體電路製造股份有限公司")
+    with open('data.txt', 'w') as outfile:
+        json.dump(data, outfile)
