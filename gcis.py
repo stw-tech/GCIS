@@ -7,20 +7,22 @@ import os
 client = boto3.client('cloudsearchdomain', 
   endpoint_url='https://search-gcis-muopck6cghhsxghgxg24adfhrm.ap-northeast-1.cloudsearch.amazonaws.com')
 
-def generate_tree(search_keywords):
+def generate_tree(search_keyword):
     # TODO try multi-thread to deal with time complexity problem
     # TODO use postgres db to fulfill this problem
     GCIS = {}
-    if(is_company(search_keywords)[0]=='false'):
+    search_keywords = []
+    search_keywords.append(search_keyword)
+    if(is_company(search_keyword)[0]=='false'):
         return "Please Key in a company name"
-    elif(is_company(search_keywords)[0]=='Choose One'):
-        return is_company(search_keywords)[1]
+    elif(is_company(search_keyword)[0]=='Choose One'):
+        return is_company(search_keyword)[1]
     else:
-        GCIS['name'] = search_keywords
+        GCIS['name'] = search_keyword
         GCIS['parent'] = "root"
         GCIS['children'] = []
-        if(get_Person(search_keywords) != None):
-            for i in get_Person(search_keywords):
+        if(get_Person(search_keyword) != None):
+            for i in get_Person(search_keyword):
                 GCIS_level2 = {}
                 GCIS_level2['name'] = i[0]
                 GCIS_level2['attribute'] = i[1]
@@ -30,7 +32,8 @@ def generate_tree(search_keywords):
                 elif(is_company(i[0])[0]=='true'):
                     level3 = get_Person(i[0])
                 for j in level3:
-                    if(j!=search_keywords):
+                    if(j not in search_keywords):
+                        search_keywords.append(j)
                         if(j != None):
                             GCIS_level3 = {}
                             GCIS_level3['name'] = j
@@ -40,7 +43,8 @@ def generate_tree(search_keywords):
                             elif(is_company(j)[0]=='true'):
                                 level4 = get_Person(j)
                             for k in level4:
-                                if(k!=search_keywords):
+                                if(k not in search_keywords):
+                                    search_keywords.append(k)
                                     if(k != None):
                                         GCIS_level4 = {}
                                         GCIS_level4['name'] = k[0]
@@ -51,7 +55,8 @@ def generate_tree(search_keywords):
                                         elif(is_company(k[0])[0]=='true'):
                                             level5 = get_Person(k[0])
                                         for l in level5:
-                                            if(l!=search_keywords):
+                                            if(l not in search_keywords):
+                                                search_keywords.append(l)
                                                 if(l != None):
                                                     GCIS_level5 = {}
                                                     GCIS_level5['name'] = l
@@ -151,5 +156,5 @@ def get_Company(Person_name):
 if(__name__ == "__main__"):
     
     data = generate_tree("台灣積體電路製造股份有限公司")
-    with open('data.txt', 'w') as outfile:
+    with open('data_v2.txt', 'w') as outfile:
         json.dump(data, outfile)
