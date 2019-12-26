@@ -19,7 +19,7 @@ def generate_tree(search_keyword):
         return is_company(search_keyword)[1]
     else:
         GCIS['name'] = search_keyword
-        GCIS['parent'] = "root"
+        GCIS['attribute'] = "company"
         GCIS['children'] = []
         if(get_Person(search_keyword) != None):
             for i in get_Person(search_keyword):
@@ -37,6 +37,7 @@ def generate_tree(search_keyword):
                         if(j != None):
                             GCIS_level3 = {}
                             GCIS_level3['name'] = j
+                            GCIS_level3['attribute'] = "company"
                             GCIS_level3['children'] = []
                             if(is_company(j)[0]=='false'):
                                 level4 = get_Company(j)
@@ -60,6 +61,7 @@ def generate_tree(search_keyword):
                                                 if(l != None):
                                                     GCIS_level5 = {}
                                                     GCIS_level5['name'] = l
+                                                    GCIS_level5['attribute'] = "company"
                                                     GCIS_level5['children'] = []
                                                     GCIS_level4['children'].append(GCIS_level5)
                                                 else:
@@ -156,5 +158,5 @@ def get_Company(Person_name):
 if(__name__ == "__main__"):
     
     data = generate_tree("台灣積體電路製造股份有限公司")
-    with open('data_v2.txt', 'w') as outfile:
+    with open('data.txt', 'w') as outfile:
         json.dump(data, outfile)
